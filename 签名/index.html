@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<script src="http://www.jq22.com/jquery/2.1.1/jquery.min.js"></script>
+	<title>手写签名</title>
+	<body id="bb">
+		<div id="canvasDiv" ></div>
+		<br><br><br>
+		<button id="btn_clear">清除</button>
+		<button id="btn_submit">提交</button>
+		<img  id="qmimg"  />
+		<script language="javascript">
+			// 创建canvas节点，添加到div上
+			var canvasDiv = document.getElementById('canvasDiv');
+			var canvas = document.createElement('canvas');
+			var canvasWidth = 1191;
+			var canvasHeight = 670;
+			canvas.setAttribute('width', canvasWidth);
+			canvas.setAttribute('height', canvasHeight);
+			canvas.setAttribute('id', 'canvas');
+			canvasDiv.appendChild(canvas);
+			var context = canvas.getContext("2d");
+
+			// 把图片填充到canvas上
+			var img = new Image();
+			img.src = "./a.jpg";
+ 			img.onload = function(){
+				var ptrn = context.createPattern(img,'no-repeat');
+				context.fillStyle = ptrn; // fillStyle 填充绘制的颜色
+				context.fillRect(0, 0, canvas.width, canvas.height); // 绘制已填色的矩形
+       		}
+
+			canvas.addEventListener("mousedown", function(e){
+				var mouseX = e.pageX - this.offsetLeft;
+				var mouseY = e.pageY - this.offsetTop;
+				paint = true;
+				addClick(mouseX, mouseY);
+				redraw();
+			});
+
+			var point = {};
+			point.notFirst = false;
+
+			canvas.addEventListener("mousemove", function(e){
+				if(paint){
+					addClick(e.pageX - this.offsetLeft, e.pageY - this.offsetTop, true);
+					redraw();
+				}
+			});
+			canvas.addEventListener("mouseup", function(e){
+				paint = false;
+			});
+			canvas.addEventListener("mouseleave", function(e){
+				paint = false;
+			});
+			var clickX = new Array();
+			var clickY = new Array();
+			var clickDrag = new Array();
+			var paint;
+
+			function addClick(x, y, dragging){
+				clickX.push(x);
+				clickY.push(y);
+				clickDrag.push(dragging);
+			}
+
+			function redraw(){
+				context.strokeStyle = "#df4b26";
+				context.lineJoin = "round";
+				context.lineWidth = 2;
+				while (clickX.length > 0 ) {
+					point.bx = point.x; // 上一个点
+					point.by = point.y;
+					point.x = clickX.pop();
+					point.y = clickY.pop(); // pop 删除并返回数组最后一个元素
+					point.drag = clickDrag.pop();
+					context.beginPath();
+					if (point.drag && point.notFirst) {
+						context.moveTo(point.bx, point.by);
+					} else {
+						point.notFirst = true;
+						context.moveTo(point.x - 1, point.y); // 不 - 1,绘制不上
+					}
+					context.lineTo(point.x, point.y);
+					// context.closePath();
+					context.stroke();
+				}
+			}
+			var clear = document.getElementById("btn_clear");
+			var submit = document.getElementById("btn_submit");
+			clear.addEventListener("click", function(){
+				canvas.width = canvas.width; // 由于canvas每当高度或宽度被重设时，画布内容就会被清空
+			});
+			submit.addEventListener("click", function(){
+				$("#qmimg").attr("src",canvas.toDataURL("image/png"));
+			});
+		</script>
+	</body>
+</html>
